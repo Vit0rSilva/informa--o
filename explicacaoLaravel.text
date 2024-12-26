@@ -1,0 +1,334 @@
+Controller ----------------------------------------------------------------------------------------------------
+    controladores onde vão ser escritos os códigos e, consequentemente, direcionar para as Views.
+    Caminho : app/Http/Controllers 
+
+    Enviar info com Array, compact(), with()
+
+    ['p1' => $p1, 'p2' => $p2] //Array
+    compact('p1','p2'); //Compact
+    ->with('p1', $p1)->with('p2', $p2); //With
+
+Route ----------------------------------------------------------------------------------------------------
+    As rotas são os caminhos HTTP que vão direcionar para os controladores onde o Back-end será escrito.
+    Caminho : routes/
+
+
+
+Public ----------------------------------------------------------------------------------------------------
+
+    Na public estarão os assets, os arquivos externos como pastas CSS, JavaScript e imagens.
+    Caminho: public/
+
+    src="{{ asset('link/link') }}" // Correto para evitar conflitos ao mudar as variáveis de ambiente.
+
+Model ======================================================================================================
+    CRiação codigo: php artisan make:model NomeModel -m
+
+    >>enloquet ORM<< 
+        É tipo um terminal onde vc pode adcionar, fazer alterações ou apagar informaçoes no banco sem precisar
+        inserir codigos de manipulaçoes no Model e Controller. Facilita na inserção de valores no banco
+        use \App\Models\SitePizza; //usar o Models
+
+        php artisan tinker
+
+
+        $pizza = new \App\Models\SitePizza(); //criando uma variavel 
+        $pizza->nome_pizza = 'Jorge'; //inserindo informação com o nome da coluna
+        print_r($pizza->getAttributes()); //retornando as informaçoes guardadas
+        $pizza->save(); //Salvando as informaçoes salvas no banco de dados
+
+        Iniciando o terminal: php artisan tinker
+        SitePizza::create(['nome_pizza'=>'pepperoni' .....]); //Salvar informaçoes mais pratico mas tem q botar no Modal = protected $fillable = ['nome_pizza', ......];
+
+        $pizzas = SitePizza::all();//Recuperar todas as informaçoes da tabela
+        $pizzas = SitePizza::find([1,2]); //REcupera com relação aos ids mecionados de "0, ..."
+
+        Where -São pesquisas
+
+            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->get(); //Faz uma pesquisa com comparação
+            $pizzas = SitePizza::where('preco_30cm', 'like', '%pizza%")->get(); //Faz uma pesquisa onde esta a "palavra". Os 2 % quer dizer q pode ser antes ou dps
+
+            $pizzas = SitePizza::whereIn('preco_30cm', [44, 55])->get(); //Pesquisar com "ou" 44 ou 55
+            $pizzas = SitePizza::whereNotIn('preco_30cm', [44, 55])->get(); //Pesquisar com "Not ou" seja diferente de 44 ou 55
+            $pizzas = SitePizza::whereBetween('preco_30cm', [44, 55])->get(); //Pesquisar"Entre" tem q ficar entre 44 ou 55
+            $pizzas = SitePizza::whereNotBetween('preco_30cm', [44, 55])->get(); //Pesquisar "Not Entre" não pode ficar entre 44 ou 55
+            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->whereIn('preco_50cm', [95, 86])->whereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "and"
+            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->orWhereIn('preco_50cm', [95, 86])->orWhereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "or"
+            $pizzas = SitePizza::whereNull('preco_50cm')->whereNotNull('created_at')->get(); //pesquisa com multiplos where "not null e null" verifica se esta vazia ou não a coluna
+            $pizzas = SitePizza::whereDate("created_at", "2024-12-25")->get(); //pesquisa por data
+            whereDay //pesquisar dia
+            whereMonth //pesquisar mes
+            whereYear //pesquisar ano
+            whereTime //pesquisar hora
+            $pizzas = SitePizza::whereColumn("created_at", "updated_at")->get(); //Comparar as colunas "<>(Diferente)", ">=", "<="
+            $pizzas = SitePizza::where(function($query) { $query->where('name_pizza', 'pepperoni'); })->orWhere(function($query) { $query->whereNotNull('name_pizza'); })->get();//Usando grupos de () para manipulação (1 + 1) or (7 - 2)
+            $pizzas = SitePizza::orderBy('nome_pizza', 'asc')->get(); //Vai imprimir de tras para frente 
+
+        Enloquet - São metodos para ser usados em variaveis onde estão as pesquisas where
+
+            $pizzas->first(); - Retorna o primeiro elemento
+            $pizzas->last(); - Retorna o ultimo elemento
+            $pizzas->reverse(); - Retorna o reverso dos elementos
+            
+            $pizzas->toArrey(); //Converte os elementos a arrey
+            $pizzas->toJason(); //Converte os elementos a Jesonplu
+
+            $pizzas->pluck('nome_pizza' , 'preco_30cm'); //Retorna apennas o valores mencionado 44R$ => "pepperoni",
+            
+            $pizza->nome_pizza = 'Jorge'; //Atualizando informação em uma variavel com valores
+            print_r($pizza); //Ver as informaçoes antigas e atuais
+            $pizza->save(); //Salvando a atualização
+            
+            $pizza->fill(['nome_pizza'=>'pepperoni' .....]); // Atualizando mais pratico
+            $pizza->update('nome' => 'Framboesa'); //Atualizando a informação de duas ou mais linhas ao msmo tempo
+            $pizza->delet(); apaga oq esta na variavel
+            $pizza->destroi(1); apaga o valor  atribuido como id no Exemplo
+
+            Enloquet/SoftDelet
+                O SoftDelete ele apaga o registro mas continua aparecendo na tabela, como se fosse a lixeira (caso vc queira apagar mas quer guardar essas inf)
+
+                //Adcionar no model
+                use Illuminate\Database\Eloquent\SoftDeletes;
+                use SoftDeletes;
+                
+                //adcionar nas tabelas do migrates
+                $table->softDeletes();
+
+                //agora pode usar = $pizza->delet(); "Vai apagar mas continuarar na tabela na lixeira"
+
+                $pizza = SitePizza::withTrashed()->get(); //Recupera os valores q não foi apagdo apagados
+                $pizza = SitePizza::onlyTrashed()->get(); //Recupera os valores apagados
+                $pizza->restore(); //Salva as restauraçoes
+
+Data Base =================================================================================================
+    seeders===================================================================================================
+        Onde vai ser passados os parametros para a implementaçoes nas Tables
+        -----Todos os codigos ultilizado aq é parecido com o tinker------
+        caminho: database/seeder
+
+        php artisan make:seeder NomeTabelaSeeder; //criar o seeder
+
+        //Escrevendo no arquivo, exemplo:
+            //Adcione o caminhos antes
+            use Illuminate\Support\Facades\DB;
+            use App\Models\SitePizza; //nome do model q quer usar
+
+            //instanciando o objeto
+            $pizzas = new SitePizza;
+            $pizzas->nome_pizza = 'Magericao';
+            $pizzas->preco_30cm = 33;
+            $pizzas->preco_50cm = 73;
+            $pizzas->descricao = 'Como vcs gostam de folhas em??';
+            $pizzas->save();
+
+            //usando um metodo creat
+            $pizzas2 = SitePizza::create(['nome_pizza'=>'Calabresa','preco_30cm'=>40,'preco_50cm'=>80, 'descricao' => 'melhor pizza de calabresa, la ele']);
+
+            //iset
+            DB::table('site_pizzas')->insert(['nome_pizza'=>'Abacaxi','preco_30cm'=>43,'preco_50cm'=>85, 'descricao' => 'melhor pizza de Acabaxi, la ele']);
+
+        //Execultar os valores da seed 
+            antes tem q botar esse codigo no arquivo "DatabaseSeeder" para criar um caminho para os valores passados no ooutro arquivo
+            $this->call(NmeDoSeeder::class); //No "DatabaseSeeder"
+            php artisan db:seed //Dar run a todos os valores na "run" valores
+            php artisan db:seed --class:SitePizzaSeeder //Dar run apenas na class mencionada.
+
+    Factories =========================================================================================================
+        É bastante ultilizado para criação de valores em massa (Quando vc quer alimentar seu Bd com varias informaçoes)
+
+        php artisan make:factory SitePizzaFactory --model=SitePizza //Criando um novo arquivo factory já com o model
+
+        //Nome da biblioteca para gerar os fakes
+        https://github.com/fzaninotto/faker
+
+        //Exemplo de faker criadas
+        return [
+            'nome_pizza' => $this->faker->word,
+            'preco_30cm' => $this->faker->numberBetween(0, 59),
+            'preco_50cm' => $this->faker->numberBetween(65, 120),
+            'descricao' => $this->faker->sentence,
+        ];
+
+        //Para dar run tem q chamar o faker no sesder
+        SitePizza::factory(100)->create(); //dentro do () digite quantas linhas quer ser gerada
+
+        //Dps da rum no seeder
+        php artisan db:seed 
+
+        //Assim gera as linhas no BD
+    
+    Migretion ====================================================================================================
+    Onde vai ser criado as tabelas, pelo proprio PHP
+    Caminho: database/migrationx
+
+    CRiação codigo: php artisan make:model NomeModel -m
+
+    Ver status de migrations ultilizadas: php artisan migrate:status
+    Reveter: php artisan migrate:rollback //"--step=2" ele volta dois passos  
+
+    Voltar todas o estado original: php artisan migrate:reset
+    Apaga tudo e logo em seguida refaz zerando: php artisan migrate:refresh
+
+    O metodo Up adciona colunas ou tabelas
+    O metodo Down retira as colunas ou tabelas 
+
+
+Views ----------------------------------------------------------------------------------------------------
+    Views são o que os usuários veem, o front-end do site.
+    Caminho : resources/views/..
+
+    @blade = PHP no Laravel.
+
+    Comentários:
+    {{-- Amarelo e roxo --}}
+
+    Comandos:
+    @dd($variavel) //Imprime o conteúdo da variável e encerra o script.
+
+    @if(count($variavel) > 0 && count($variavel) < 10) // count pega a quantidade de valores.
+        <h1>Oi</h1>
+    @elseif(count($variavel) >= 10)
+        <h1>Muitos itens</h1>
+    @else
+        <h1>Vazio</h1>
+    @endif
+
+    // @unless é como se fosse o "!" (negação), deixando a condição contrária.
+    @if(!$variavel[0]['inativo'] == 'S')
+        Inativo
+    @endif
+
+    @unless($variavel[0]['inativo'] == 'S')
+        Inativo
+    @endunless
+
+    // @isset verifica se a variável ou array existe.
+    @isset($variavel)
+        Existe
+        @isset($variavel[0]['cnpj'])
+            Existe
+        @endisset
+    @endisset
+
+    // @empty verifica se a variável está vazia ('', 0, false, null, array[]).
+    @empty($variavel)
+        Vazio = true
+    @endempty
+
+    // Condição ternária PHP:
+    $condicao ? 'Verdadeiro' : 'Falso';
+
+    // Condição ternária Blade:
+    {{ $variavel[0]['cnpj'] ?? 'Dados não preenchidos' }} // Similar ao isset.
+
+    @switch($variavel[2]['ddd'])
+        @case('11')
+            São Paulo
+            @break 
+        @case('71')
+            Bahia
+            @break 
+        @case('44')
+            Paraná
+            @break 
+        @case('89')
+            Piauí
+            @break 
+        @default
+            Estado não identificado
+    @endswitch
+
+    // For
+    @for($i = 0; $i < 10; $i++)
+        {{$i}}
+    @endfor
+
+    // While
+    @php $n = 1; @endphp
+    @while(isset($variavel[$n]))
+        Fornecedor: {{$variavel[$n]['nome']}}
+        CPF: {{$variavel[$n]['cpf']}}
+        Número: {{$variavel[$n]['numero']}}
+        @php $n++; @endphp
+    @endwhile
+
+    // Foreach (usando $loop para informações adicionais).
+    @foreach($variavel as $indice => $fornecedor)
+        Iteração atual: {{ $loop->iteration }} // Número atual do loop.
+        Fornecedor: {{$fornecedor['nome']}}
+        CPF: {{$fornecedor['cpf']}}
+        Número: {{$fornecedor['numero']}}
+        @if($loop->first) <!-- Mostra apenas no primeiro loop. -->
+            Primeiro loop
+        @endif
+        @if($loop->last) <!-- Mostra apenas no último loop. -->
+            Último loop
+            Total de registros: {{ $loop->count }} <!-- Total de itens. -->
+        @endif
+    @endforeach
+
+    // Forelse (trata arrays vazios sem erro, ao contrário do foreach).
+    @forelse($variavel as $indice => $fornecedor)
+        Fornecedor: {{$fornecedor['nome']}}
+        CPF: {{$fornecedor['cpf']}}
+        Número: {{$fornecedor['numero']}}
+    @empty
+        Não existe fornecedor.
+    @endforelse
+
+    // Para imprimir @ no Blade:
+    @@endforelse
+
+    // Melhorar o layout com @yield, @extends, @section, @endsection
+
+    @yield('nomeDoYield') 
+    // Este comando é usado para criar uma "área dinâmica" em uma view principal. 
+    // Ele marca um local onde o conteúdo específico será inserido a partir de outra view que estende essa principal.
+
+    @extends('nomeDaViewPrincipal') 
+    // Este comando é usado para dizer que a view atual está "estendendo" uma view principal.
+    // Ele permite reutilizar um layout base e preencher apenas as seções dinâmicas.
+
+    @section('nomeDaSecao') 
+    // Este comando é usado para definir o conteúdo de uma seção dinâmica (definida com @yield) em uma view que estende outra.
+    // Você coloca o conteúdo específico dentro de @section e @endsection.
+        <link rel="stylesheet" href="/css/home.css">
+    @endsection 
+
+    @include('nomeDoArquivoInclude') 
+    // Este comando é usado para incluir o conteúdo completo de outro arquivo Blade dentro da view atual.
+    // É útil para componentes reutilizáveis, como cabeçalhos, rodapés ou menus de navegação.
+
+    @component('nomeDoArquivoComponente', ['classe' => 'borda-preta']) 
+    // O @component é usado para reutilizar trechos de código estruturado de uma view, passando variáveis para personalizá-lo.
+    // No arquivo do componente, você pode acessar variáveis como {{ $nomeDoParametro }} e o conteúdo passado será renderizado no {{ $slot }}.
+        <p>Escrever qualquer coisa</p>  
+    @endcomponent 
+    // No arquivo original do componente, use {{ $slot }} para exibir o conteúdo passado entre @component e @endcomponent.
+    // Use {{ $nomeDoParametro }} para acessar variáveis enviadas como parâmetros.
+
+    // Melhorar a segurança dos formulários contra sites maliciosos com tokens CSRF.
+    @csrf 
+    // Este comando é obrigatório em todos os formulários que enviam dados POST no Laravel.
+    // Ele adiciona um token CSRF (Cross-Site Request Forgery) ao formulário, criando um código único para identificar que a solicitação veio do mesmo site.
+    // Isso impede que sites maliciosos forjem requisições usando o navegador do usuário.
+    // Exemplo de uso:
+    // <form action="/salvar" method="POST">
+    //     @csrf
+    //     <input type="text" name="nome">
+    //     <button type="submit">Enviar</button>
+    // </form>
+
+
+projeto_villarejo.code-workspace
+{
+	"folders": [
+		{
+			"path": "../projeto_villarejo"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {}
+}
