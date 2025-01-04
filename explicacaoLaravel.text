@@ -8,10 +8,79 @@ Controller ---------------------------------------------------------------------
     compact('p1','p2'); //Compact
     ->with('p1', $p1)->with('p2', $p2); //With
 
+    ---request 
+        //São todas as aquisiçoes enviada pelo brawser, e tem como recuperar todas informaçoes por meio desse codigo inserido no controller
+
+        //Caro vc queira manipular as request como validar um form exemplo
+            php artisan make:request RegisterRequest //Criar um request
+
+            use App\Http\Requests\RegisterRequest; //Bote no seu controller para chamar o request 
+
+            //dentro do request bote suas regras de validação
+
+
+
+Middlewere ----------------------------------------------------------------------------------------------------
+    É uma caixa q pega todas as informaçoes do usuario antes de ele entrar. 
+
+    php artisan make:middleware LogAcessoMiddleware //Criação de 
+
+    return response('Estamos aq');//Deixando a uma msg q entrou
+    return $next($request); //ir para o proximo middlewere
+
+
+
+    //Pegando as informaçoes do $request e salvando no banco 
+        $ip = $request->server->get('REMOTE_ADDR');
+        $rota = $request->getRequestUri();
+        LogAcesso::create(['log' => "Ip $ip requesitou a rota $rota"]);
+
+        return $next($request)//Segue adiantes (Ou paara o proximo middle)
+
+    //Comando global para entrar no Middle
+        //Botar no bootstrap/app.php
+        ->withMiddleware(function (Middleware $middleware) {
+            $middleware->append(\App\Http\Middleware\LogAcessoMiddleware::class);//Esse o codigo, emcaminha para o midle
+        })
+
+    //Apelidando um 
+        //Botar no bootstrap/app.php
+        $middleware->alias(['log.acesso' => LogAcessoMiddleware::class]);
+
+        //Adcionando apelido no Web na rota desejada
+        ->middleware('log.acesso', 'autenticacao')//Pode adcionar quantos middle quiser, ele vai sempre passando de 1 em 1. 
+
+
+
 Route ----------------------------------------------------------------------------------------------------
     As rotas são os caminhos HTTP que vão direcionar para os controladores onde o Back-end será escrito.
     Caminho : routes/
 
+config +++++++++++++++++++++++++++++++++++++++++++++
+    //Caso querira usar os metodos ja prontos 
+    
+    auth ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //Metodo para autenticação 
+
+    //caso queira adcionar outra tabela para autenticacao exemplo "Administrador" 
+        'guards' => [
+                .....
+            'admin' => [
+            'driver' => 'session',
+            'provider' => 'adm',
+            ], //adcione o nome da tabela
+        ],
+
+        'providers' => [   
+            ....
+            'amd' => [
+                'driver' => 'eloquent',
+                'model' => env('AUTH_MODEL', App\Models\Adm::class), //adcione o caminho para o modal 
+            ],
+        ],
+
+    //Usando tabela especifica com o auth 
+        (Auth::guard('admin')) //chamando o auth para a tabela adm
 
 
 Public ----------------------------------------------------------------------------------------------------
@@ -172,6 +241,9 @@ Data Base ======================================================================
     O metodo Up adciona colunas ou tabelas
     O metodo Down retira as colunas ou tabelas 
 
+    //tranferir uma coluna para outra coluna
+        DB::statement('update nome_tabela set nome_coluna_nove = nome_coluna_original)
+
 
 Views ----------------------------------------------------------------------------------------------------
     Views são o que os usuários veem, o front-end do site.
@@ -319,16 +391,7 @@ Views --------------------------------------------------------------------------
     //     <button type="submit">Enviar</button>
     // </form>
 
+//ERROR PAGINA
+    //419
+        Ou a pagina expirou e vc tem q mandar as informçoes novamente ou esqueceu de botar o @csrf
 
-projeto_villarejo.code-workspace
-{
-	"folders": [
-		{
-			"path": "../projeto_villarejo"
-		},
-		{
-			"path": "."
-		}
-	],
-	"settings": {}
-}
