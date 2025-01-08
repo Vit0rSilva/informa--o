@@ -1,3 +1,21 @@
+//Funçoes globais 
+    caso vc queira amazernar funçoes globais onde queira usar onde vc quiser 
+    crei um helpnes.php em App/http e salve sua rota em composer.json 
+    "autoload": {
+        "files": [
+            "app/helpers.php"
+        ],
+    }//codigo 
+
+    //helpnes
+        crie sua funcao
+        if (!function_exists('buscarCep')) { //Ele serve para evitar conflitos de redefinição de função caso o arquivo seja carregado mais de uma vez.
+        function buscarCep($cep)
+        {
+            //codigo 
+        }}
+
+
 Controller ----------------------------------------------------------------------------------------------------
     controladores onde vão ser escritos os códigos e, consequentemente, direcionar para as Views.
     Caminho : app/Http/Controllers 
@@ -24,11 +42,9 @@ Middlewere ---------------------------------------------------------------------
     É uma caixa q pega todas as informaçoes do usuario antes de ele entrar. 
 
     php artisan make:middleware LogAcessoMiddleware //Criação de 
-
+  
     return response('Estamos aq');//Deixando a uma msg q entrou
     return $next($request); //ir para o proximo middlewere
-
-
 
     //Pegando as informaçoes do $request e salvando no banco 
         $ip = $request->server->get('REMOTE_ADDR');
@@ -395,3 +411,5 @@ Views --------------------------------------------------------------------------
     //419
         Ou a pagina expirou e vc tem q mandar as informçoes novamente ou esqueceu de botar o @csrf
 
+//entrar no diagrama workbanch
+Database > Reverse Engineer...
