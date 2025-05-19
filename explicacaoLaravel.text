@@ -1,3 +1,15 @@
+Bibliotecas:
+    PHP-ML - Biblioteca de aprendizado de máquina
+        instalação composer require php-ai/php-ml
+        Autoload do Composer (Reconhecer as classes) composer dump-autoload
+
+classes:
+    Schedule========================================
+        CAso queira uma automação para agendar funcionamento de codigo
+        link https://laravel.com/docs/11.x/scheduling
+
+        php artisan schedule:list   
+
 //Funçoes globais 
     caso vc queira amazernar funçoes globais onde queira usar onde vc quiser 
     crei um helpnes.php em App/http e salve sua rota em composer.json 
@@ -15,26 +27,167 @@
             //codigo 
         }}
 
+app=========================================================
+    Http=====================================================
+        Onde fica as requisições para o site
+        Controller ----------------------------------------------------------------------------------------------------
+            controladores onde vão ser escritos os códigos e, consequentemente, direcionar para as Views.
+            Caminho : app/Http/Controllers 
 
-Controller ----------------------------------------------------------------------------------------------------
-    controladores onde vão ser escritos os códigos e, consequentemente, direcionar para as Views.
-    Caminho : app/Http/Controllers 
+            php artisan make:controller EnderecoController //criando um
 
-    Enviar info com Array, compact(), with()
+            Enviar info com Array, compact(), with()
 
-    ['p1' => $p1, 'p2' => $p2] //Array
-    compact('p1','p2'); //Compact
-    ->with('p1', $p1)->with('p2', $p2); //With
+            ['p1' => $p1, 'p2' => $p2] //Array
+            compact('p1','p2'); //Compact
+            ->with('p1', $p1)->with('p2', $p2); //With
 
-    ---request 
-        //São todas as aquisiçoes enviada pelo brawser, e tem como recuperar todas informaçoes por meio desse codigo inserido no controller
+            ---request 
+                //São todas as aquisiçoes enviada pelo brawser, e tem como recuperar todas informaçoes por meio desse codigo inserido no controller
 
-        //Caro vc queira manipular as request como validar um form exemplo
-            php artisan make:request RegisterRequest //Criar um request
+                //Caro vc queira manipular as request como validar um form exemplo
+                    php artisan make:request RegisterRequest //Criar um request
 
-            use App\Http\Requests\RegisterRequest; //Bote no seu controller para chamar o request 
+                    use App\Http\Requests\RegisterRequest; //Bote no seu controller para chamar o request 
 
-            //dentro do request bote suas regras de validação
+                    //dentro do request bote suas regras de validação
+
+    Model ======================================================================================================
+        CRiação codigo: php artisan make:model NomeModel -m //Cria o Modal e o Migration
+        php artisan make:model adm/NomeModel -m //Criar em pasta
+
+        >>enloquet ORM<< 
+            É tipo um terminal onde vc pode adcionar, fazer alterações ou apagar informaçoes no banco sem precisar
+            inserir codigos de manipulaçoes no Model e Controller. Facilita na inserção de valores no banco
+            use \App\Models\SitePizza; //usar o Models
+
+            php artisan tinker
+
+
+            $pizza = new \App\Models\SitePizza(); //criando uma variavel 
+            $pizza->nome_pizza = 'Jorge'; //inserindo informação com o nome da coluna
+            print_r($pizza->getAttributes()); //retornando as informaçoes guardadas
+            $pizza->save(); //Salvando as informaçoes salvas no banco de dados
+
+            Iniciando o terminal: php artisan tinker
+            SitePizza::create(['nome_pizza'=>'pepperoni' .....]); //Salvar informaçoes mais pratico mas tem q botar no Modal = protected $fillable = ['nome_pizza', ......];
+
+            $pizzas = SitePizza::all();//Recuperar todas as informaçoes da tabela
+            $pizzas = SitePizza::find([1,2]); //REcupera com relação aos ids mecionados de "0, ..."
+
+            Where -São pesquisas
+
+                $pizzas = SitePizza::where('preco_30cm', '>=', 44)->get(); //Faz uma pesquisa com comparação
+                $pizzas = SitePizza::where('preco_30cm', 'like', '%pizza%")->get(); //Faz uma pesquisa onde esta a "palavra". Os 2 % quer dizer q pode ser antes ou dps
+
+                $pizzas = SitePizza::whereIn('preco_30cm', [44, 55])->get(); //Pesquisar com "ou" 44 ou 55
+                $pizzas = SitePizza::whereNotIn('preco_30cm', [44, 55])->get(); //Pesquisar com "Not ou" seja diferente de 44 ou 55
+                $pizzas = SitePizza::whereBetween('preco_30cm', [44, 55])->get(); //Pesquisar"Entre" tem q ficar entre 44 ou 55
+                $pizzas = SitePizza::whereNotBetween('preco_30cm', [44, 55])->get(); //Pesquisar "Not Entre" não pode ficar entre 44 ou 55
+                $pizzas = SitePizza::where('preco_30cm', '>=', 44)->whereIn('preco_50cm', [95, 86])->whereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "and"
+                $pizzas = SitePizza::where('preco_30cm', '>=', 44)->orWhereIn('preco_50cm', [95, 86])->orWhereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "or"
+                $pizzas = SitePizza::whereNull('preco_50cm')->whereNotNull('created_at')->get(); //pesquisa com multiplos where "not null e null" verifica se esta vazia ou não a coluna
+                $pizzas = SitePizza::whereDate("created_at", "2024-12-25")->get(); //pesquisa por data
+                whereDay //pesquisar dia
+                whereMonth //pesquisar mes
+                whereYear //pesquisar ano
+                whereTime //pesquisar hora
+                $pizzas = SitePizza::whereColumn("created_at", "updated_at")->get(); //Comparar as colunas "<>(Diferente)", ">=", "<="
+                $pizzas = SitePizza::where(function($query) { $query->where('name_pizza', 'pepperoni'); })->orWhere(function($query) { $query->whereNotNull('name_pizza'); })->get();//Usando grupos de () para manipulação (1 + 1) or (7 - 2)
+                $pizzas = SitePizza::orderBy('nome_pizza', 'asc')->get(); //Vai imprimir de tras para frente 
+
+            Enloquet - São metodos para ser usados em variaveis onde estão as pesquisas where
+
+                $pizzas->first(); - Retorna o primeiro elemento
+                $pizzas->last(); - Retorna o ultimo elemento
+                $pizzas->reverse(); - Retorna o reverso dos elementos
+                
+                $pizzas->toArrey(); //Converte os elementos a arrey
+                $pizzas->toJason(); //Converte os elementos a Jesonplu
+
+                $pizzas->pluck('nome_pizza' , 'preco_30cm'); //Retorna apennas o valores mencionado 44R$ => "pepperoni",
+                
+                $pizza->nome_pizza = 'Jorge'; //Atualizando informação em uma variavel com valores
+                print_r($pizza); //Ver as informaçoes antigas e atuais
+                $pizza->save(); //Salvando a atualização
+                
+                $pizza->fill(['nome_pizza'=>'pepperoni' .....]); // Atualizando mais pratico
+                $pizza->update('nome' => 'Framboesa'); //Atualizando a informação de duas ou mais linhas ao msmo tempo
+                $pizza->delet(); apaga oq esta na variavel
+                $pizza->destroi(1); apaga o valor  atribuido como id no Exemplo
+
+                Enloquet/SoftDelet
+                    O SoftDelete ele apaga o registro mas continua aparecendo na tabela, como se fosse a lixeira (caso vc queira apagar mas quer guardar essas inf)
+
+                    //Adcionar no model
+                    use Illuminate\Database\Eloquent\SoftDeletes;
+                    use SoftDeletes;
+                    
+                    //adcionar nas tabelas do migrates
+                    $table->softDeletes();
+
+                    //agora pode usar = $pizza->delet(); "Vai apagar mas continuarar na tabela na lixeira"
+
+                    $pizza = SitePizza::withTrashed()->get(); //Recupera os valores q não foi apagdo apagados
+                    $pizza = SitePizza::onlyTrashed()->get(); //Recupera os valores apagados
+                    $pizza->restore(); //Salva as restauraçoes
+
+    Console =======================================================================
+        Comand ==========================================================================
+            Ele cerve para crias seu proprio comando artisan e ser chamado
+            php artisan make:command nomeProjeto
+            
+            protected $signature = 'app:agrupar-pedidos'; //"Nome" do comando
+
+            protected $description = 'Agrupa pedidos a cada 15 dias'; //Descrição do comando
+
+            public function handle(ClusteringService $clusteringService){} //Logica para quando for chamado
+
+            mas para chamar ele precisa manipular ele em console.php para funcionar
+
+            //comando para chamar o comando
+                php artisan app:agrupar-pedidos
+
+                php artisan schedule:list  
+
+                php artisan schedule:work //Forçar chamar o comando  
+
+
+    Service==================================================================
+
+
+
+        Caso queira manipular dados grandes 
+        Crie a pasta Services e logo dps o arquivo ClusteringService.php
+
+    Email===================================================================
+        //Configure seu arquivo .env
+            MAIL_MAILER=smtp
+            #MAIL_SCHEME=null
+            MAIL_HOST=smtp.gmail.com
+            MAIL_PORT=587
+            MAIL_USERNAME=vitor.work21@gmail.com //Seu gmail
+            MAIL_PASSWORD="ebaa eiay dege jkuf" //A senha gerada pelo APP ("entre no seu acont/segurity/ pesquise password app e aperte e gere a senha")
+            MAIL_ENCRYPTION=tls
+            MAIL_FROM_ADDRESS="${MAIL_USERNAME}"
+            MAIL_FROM_NAME="${APP_NAME}"
+
+        php artisan make:mail MensagemTest --markdown email.mensagem-test //Comando para criar uma Mensagem Email Cuspomizado
+
+        //para customizar a view 
+            php artisan vendor:publish 
+            selecione 8 (Laravel-mail)
+
+    Notifications=========================================================
+        CAso queira alterar as notifications tipo "email reset" q o Laravel já cria mas esta em ingles
+        php artisan make:notification RendefinirSenhaNotificacao Criar a notificação
+        
+        Mas tem q chamar ele no modal para funcionar 
+            // Método para enviar a notificação de redefinição de senha
+            public function sendPasswordResetNotification($token)
+            {
+                $this->notify(new RendefinirSenhaNotificacao($token, $this->email, $this->name));
+            }
 
 
 
@@ -65,6 +218,15 @@ Middlewere ---------------------------------------------------------------------
 
         //Adcionando apelido no Web na rota desejada
         ->middleware('log.acesso', 'autenticacao')//Pode adcionar quantos middle quiser, ele vai sempre passando de 1 em 1. 
+
+Storege----------------------------------------------------------------------
+    app´----------------------------
+        Caso vc queira guardar arquivos e imgs 
+        //private
+
+        //public
+            deixar acessivel a exibição 
+            php artisan storage:link
 
 
 
@@ -106,84 +268,6 @@ Public -------------------------------------------------------------------------
 
     src="{{ asset('link/link') }}" // Correto para evitar conflitos ao mudar as variáveis de ambiente.
 
-Model ======================================================================================================
-    CRiação codigo: php artisan make:model NomeModel -m
-
-    >>enloquet ORM<< 
-        É tipo um terminal onde vc pode adcionar, fazer alterações ou apagar informaçoes no banco sem precisar
-        inserir codigos de manipulaçoes no Model e Controller. Facilita na inserção de valores no banco
-        use \App\Models\SitePizza; //usar o Models
-
-        php artisan tinker
-
-
-        $pizza = new \App\Models\SitePizza(); //criando uma variavel 
-        $pizza->nome_pizza = 'Jorge'; //inserindo informação com o nome da coluna
-        print_r($pizza->getAttributes()); //retornando as informaçoes guardadas
-        $pizza->save(); //Salvando as informaçoes salvas no banco de dados
-
-        Iniciando o terminal: php artisan tinker
-        SitePizza::create(['nome_pizza'=>'pepperoni' .....]); //Salvar informaçoes mais pratico mas tem q botar no Modal = protected $fillable = ['nome_pizza', ......];
-
-        $pizzas = SitePizza::all();//Recuperar todas as informaçoes da tabela
-        $pizzas = SitePizza::find([1,2]); //REcupera com relação aos ids mecionados de "0, ..."
-
-        Where -São pesquisas
-
-            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->get(); //Faz uma pesquisa com comparação
-            $pizzas = SitePizza::where('preco_30cm', 'like', '%pizza%")->get(); //Faz uma pesquisa onde esta a "palavra". Os 2 % quer dizer q pode ser antes ou dps
-
-            $pizzas = SitePizza::whereIn('preco_30cm', [44, 55])->get(); //Pesquisar com "ou" 44 ou 55
-            $pizzas = SitePizza::whereNotIn('preco_30cm', [44, 55])->get(); //Pesquisar com "Not ou" seja diferente de 44 ou 55
-            $pizzas = SitePizza::whereBetween('preco_30cm', [44, 55])->get(); //Pesquisar"Entre" tem q ficar entre 44 ou 55
-            $pizzas = SitePizza::whereNotBetween('preco_30cm', [44, 55])->get(); //Pesquisar "Not Entre" não pode ficar entre 44 ou 55
-            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->whereIn('preco_50cm', [95, 86])->whereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "and"
-            $pizzas = SitePizza::where('preco_30cm', '>=', 44)->orWhereIn('preco_50cm', [95, 86])->orWhereBetween('created_at', ['2024-12-25 23:17:08', '2024-12-25 23:12:04'])->get(); //pesquisa com multiplos where "or"
-            $pizzas = SitePizza::whereNull('preco_50cm')->whereNotNull('created_at')->get(); //pesquisa com multiplos where "not null e null" verifica se esta vazia ou não a coluna
-            $pizzas = SitePizza::whereDate("created_at", "2024-12-25")->get(); //pesquisa por data
-            whereDay //pesquisar dia
-            whereMonth //pesquisar mes
-            whereYear //pesquisar ano
-            whereTime //pesquisar hora
-            $pizzas = SitePizza::whereColumn("created_at", "updated_at")->get(); //Comparar as colunas "<>(Diferente)", ">=", "<="
-            $pizzas = SitePizza::where(function($query) { $query->where('name_pizza', 'pepperoni'); })->orWhere(function($query) { $query->whereNotNull('name_pizza'); })->get();//Usando grupos de () para manipulação (1 + 1) or (7 - 2)
-            $pizzas = SitePizza::orderBy('nome_pizza', 'asc')->get(); //Vai imprimir de tras para frente 
-
-        Enloquet - São metodos para ser usados em variaveis onde estão as pesquisas where
-
-            $pizzas->first(); - Retorna o primeiro elemento
-            $pizzas->last(); - Retorna o ultimo elemento
-            $pizzas->reverse(); - Retorna o reverso dos elementos
-            
-            $pizzas->toArrey(); //Converte os elementos a arrey
-            $pizzas->toJason(); //Converte os elementos a Jesonplu
-
-            $pizzas->pluck('nome_pizza' , 'preco_30cm'); //Retorna apennas o valores mencionado 44R$ => "pepperoni",
-            
-            $pizza->nome_pizza = 'Jorge'; //Atualizando informação em uma variavel com valores
-            print_r($pizza); //Ver as informaçoes antigas e atuais
-            $pizza->save(); //Salvando a atualização
-            
-            $pizza->fill(['nome_pizza'=>'pepperoni' .....]); // Atualizando mais pratico
-            $pizza->update('nome' => 'Framboesa'); //Atualizando a informação de duas ou mais linhas ao msmo tempo
-            $pizza->delet(); apaga oq esta na variavel
-            $pizza->destroi(1); apaga o valor  atribuido como id no Exemplo
-
-            Enloquet/SoftDelet
-                O SoftDelete ele apaga o registro mas continua aparecendo na tabela, como se fosse a lixeira (caso vc queira apagar mas quer guardar essas inf)
-
-                //Adcionar no model
-                use Illuminate\Database\Eloquent\SoftDeletes;
-                use SoftDeletes;
-                
-                //adcionar nas tabelas do migrates
-                $table->softDeletes();
-
-                //agora pode usar = $pizza->delet(); "Vai apagar mas continuarar na tabela na lixeira"
-
-                $pizza = SitePizza::withTrashed()->get(); //Recupera os valores q não foi apagdo apagados
-                $pizza = SitePizza::onlyTrashed()->get(); //Recupera os valores apagados
-                $pizza->restore(); //Salva as restauraçoes
 
 Data Base =================================================================================================
     seeders===================================================================================================
@@ -407,9 +491,48 @@ Views --------------------------------------------------------------------------
     //     <button type="submit">Enviar</button>
     // </form>
 
+//artisan interessante
+    CAso vc queira criar um Controller Migration e um Model
+    php artisan make:model --migration --controller --resource Nome
+    ou
+    php artisan make:model -mcr Modelo
+    ou q faz TUDO
+    php artisan make:model --all Carro
+
+    //iniciar o arquivo da API
+        php artisan install:api
+
+    //Instalar o Laravel Reverb para poder utilizar **Laravel WebSockets** | Facilita em atualização em tempoo real no banco de dados
+        php artisan install:broadcasting
+
+        php artisan reverb:start //Para iniciar o servidor WebSocket do Reverb
+
+        //Criar o arquivo para disparar o evento
+            php artisan make:event NovoPedidoFeito
+
+        //Verificar a fila do ShouldBroadcast
+            php artisan queue:work
+
+        //Inicia o @vite o js
+            //npm run dev
+
+
+
 //ERROR PAGINA
     //419
         Ou a pagina expirou e vc tem q mandar as informçoes novamente ou esqueceu de botar o @csrf
 
 //entrar no diagrama workbanch
 Database > Reverse Engineer...
+
+
+//Metodos 
+    Use is_null() para verificar exclusivamente se algo é null.
+    Use isset() para verificar se uma variável foi definida e não é null.
+    Use empty() quando quiser verificar "vazios" em geral (null, 0, strings vazias, etc.).
+    Use property_exists() ou array_key_exists() ao trabalhar com objetos ou arrays.
+
+/*Entrar por outro dispositivos*/
+//ipconfig *Verificar o ip da internet 
+//php artisan serve --host=0.0.0.0 --port=8000
+//http://0.0.0.15:8000 //entrer em outros dispositivos mas tem q ver o ip da internet
